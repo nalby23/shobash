@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>קופת הקבוצה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Secular+One&display=swap">
+<style id="app-style">
+/* Layout: one narrow column. Pitch-striped deep-green balance hero first, then totals, category donut, expense ledger. Admin mode swaps the body for forms and manage lists, with a sticky publish bar. */
+:root{
+  color-scheme:light;
+  --bg:#EDF2EE;--surface:#FFFFFF;--surface-2:#F3F7F4;--fg:#17201B;--muted:#586760;
+  --line:#D8E1DA;--line-strong:#B7C5BB;
+  --forest:#0D4430;--forest-2:#115038;--on-forest:#EAF5EE;--on-forest-mute:rgba(234,245,238,.74);
+  --mint:#86E6AD;--coral:#FFB1A3;
+  --good:#16793F;--bad:#B23A2C;--accent:#15753F;--on-accent:#FFFFFF;
+  --warn-bg:#FFF2CC;--warn-fg:#5B4300;
+  --c-pitch:#16793F;--c-gear:#2B7A9B;--c-snacks:#CC8418;--c-ref:#C6513B;--c-other:#7A6AA8;
+  --font-display:'Secular One','Heebo',system-ui,sans-serif;
+  --font-body:'Heebo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1310;--surface:#171E19;--surface-2:#1D2620;--fg:#E7EEE9;--muted:#9BAAA1;
+    --line:#2A362E;--line-strong:#3E4E43;
+    --forest:#0F3D2A;--forest-2:#134833;--on-forest:#EAF5EE;--on-forest-mute:rgba(234,245,238,.74);
+    --mint:#86E6AD;--coral:#FFB1A3;
+    --good:#5FD08A;--bad:#EE7B6B;--accent:#2FA765;--on-accent:#06130B;
+    --warn-bg:#3A3112;--warn-fg:#F2DE9C;
+    --c-pitch:#4FCB86;--c-gear:#5CB0D1;--c-snacks:#EBB056;--c-ref:#E9806A;--c-other:#A596D4;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1310;--surface:#171E19;--surface-2:#1D2620;--fg:#E7EEE9;--muted:#9BAAA1;
+  --line:#2A362E;--line-strong:#3E4E43;
+  --forest:#0F3D2A;--forest-2:#134833;--on-forest:#EAF5EE;--on-forest-mute:rgba(234,245,238,.74);
+  --mint:#86E6AD;--coral:#FFB1A3;
+  --good:#5FD08A;--bad:#EE7B6B;--accent:#2FA765;--on-accent:#06130B;
+  --warn-bg:#3A3112;--warn-fg:#F2DE9C;
+  --c-pitch:#4FCB86;--c-gear:#5CB0D1;--c-snacks:#EBB056;--c-ref:#E9806A;--c-other:#A596D4;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;padding-inline:16px;padding-block:20px 96px;background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--font-body);direction:rtl;-webkit-text-size-adjust:100%}
+button,input,select{font-family:inherit}
+.wrap{max-width:760px;margin-inline:auto;display:grid;gap:16px}
+.wrap>*{min-width:0}
+.amt{unicode-bidi:isolate;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;width:46px;height:46px;border-radius:50%;background:var(--forest);color:var(--on-forest);display:grid;place-items:center;font-size:23px;flex:none}
+h1{font:400 26px/1.1 var(--font-display);margin:0}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:999px;font-weight:500;font-size:14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--forest);color:var(--on-forest)}
+
+.demo{background:var(--warn-bg);color:var(--warn-fg);border-radius:12px;padding:10px 14px;font-size:14px}
+.demo button{font:inherit;font-weight:700;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+.hero{position:relative;overflow:hidden;border-radius:20px;padding:24px 22px;color:var(--on-forest);background:repeating-linear-gradient(90deg,var(--forest) 0 64px,var(--forest-2) 64px 128px)}
+.hero::before{content:'';position:absolute;inset-block:0;inset-inline-end:29px;width:2px;background:rgba(255,255,255,.1)}
+.hero::after{content:'';position:absolute;top:50%;inset-inline-end:-70px;width:200px;height:200px;border:2px solid rgba(255,255,255,.1);border-radius:50%;transform:translateY(-50%)}
+.hero>*{position:relative;z-index:1}
+.hero-label{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--on-forest-mute)}
+.hero-num{font:400 clamp(48px,14vw,84px)/1 var(--font-display);color:var(--mint);margin-block:10px 8px}
+.hero-num.neg{color:var(--coral)}
+.hero-meta{font-size:13px;color:var(--on-forest-mute)}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;min-width:0}
+.tile .lbl{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.tile .val{font:400 clamp(22px,6.4vw,30px)/1.15 var(--font-display);margin-top:4px}
+.val.in{color:var(--good)}
+.val.out{color:var(--bad)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.card h2{font:400 19px/1.3 var(--font-display);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.card h2 small{font:400 13px var(--font-body);color:var(--muted);margin-inline-start:auto}
+.empty{color:var(--muted);padding:14px 0;text-align:center}
+
+.chart{display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:center}
+.donut{position:relative;width:176px;height:176px;flex:none}
+.donut svg{width:100%;height:100%;display:block}
+.donut .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:2px}
+.mid .t{font-size:12px;color:var(--muted)}
+.mid .v{font:400 21px/1.1 var(--font-display)}
+.legend{list-style:none;margin:0;padding:0;flex:1 1 230px;min-width:0;display:grid;gap:13px}
+.legend li{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:baseline}
+.legend .nm{display:flex;align-items:center;gap:8px;min-width:0}
+.dot{width:11px;height:11px;border-radius:3px;flex:none}
+.legend .pc{color:var(--muted);font-size:12px}
+.legend .am{font-weight:700}
+.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+
+.tbl-wrap{overflow-x:auto;margin-inline:-6px}
+table{width:100%;border-collapse:collapse}
+th{text-align:start;font-size:12px;font-weight:500;color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
+td{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.d{color:var(--muted);white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums}
+td.n{font-weight:700;white-space:nowrap}
+td small{display:block;color:var(--muted);font-size:12px}
+.chip{font-size:13px;font-weight:500;padding:6px 11px;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip:hover{background:var(--surface-2)}
+.muted{color:var(--muted);font-size:13px;white-space:nowrap}
+
+.dep{list-style:none;margin:0;padding:0}
+.dep li{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dep li:last-child{border-bottom:0}
+.dep .d{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dep .tx{flex:1;min-width:0}
+.dep .am{font-weight:700;color:var(--good)}
+
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:4px}
+
+/* admin */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.span2{grid-column:1/-1}
+.field{display:grid;gap:6px;min-width:0}
+.lbl2{font-size:13px;font-weight:500;color:var(--muted)}
+input,select{width:100%;min-width:0;font-size:16px;padding:11px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface-2);color:var(--fg)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{font-weight:700;font-size:15px;padding:12px 18px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn[disabled]{opacity:.6;cursor:default}
+.ghost{font-size:14px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:10px;background:transparent;color:var(--fg);cursor:pointer}
+.ghost.danger{color:var(--bad);border-color:currentColor}
+.rcpt{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.thumb{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.hint{color:var(--muted);font-size:13px;margin:0}
+.mlist{list-style:none;margin:0;padding:0}
+.mrow{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow b{font-weight:500}
+.mrow small{display:block;color:var(--muted);font-size:12px}
+.mrow .am{font-weight:700;white-space:nowrap}
+.macts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.sync{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.sync b{color:var(--good)}
+
+.pubbar{position:fixed;inset-inline:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.pubbar div{max-width:760px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pubbar span{font-size:14px;flex:1 1 200px}
+
+.modal{position:fixed;inset:0;z-index:50;background:rgba(6,12,9,.74);display:grid;place-items:center;padding:16px}
+.modal-card{background:var(--surface);color:var(--fg);border-radius:18px;max-width:560px;width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.modal-head b{font-weight:500;min-width:0}
+.modal-body{overflow:auto;padding:12px;background:var(--surface-2)}
+.modal-body img{display:block;width:100%;height:auto;border-radius:8px;background:#fff}
+
+.toast{position:fixed;inset-inline:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));margin-inline:auto;max-width:420px;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:12px;z-index:60;text-align:center;font-size:14px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="application/json" id="app-data">{"rev":0,"updated":null,"incomes":[{"id":"i1","amount":400,"date":"2026-09-02","note":"גיוס ראשון לעונה","demo":true},{"id":"i2","amount":350,"date":"2026-09-16","note":"הפקדה חודשית","demo":true},{"id":"i3","amount":500,"date":"2026-09-23","note":"הפקדות שבוע","demo":true},{"id":"i4","amount":450,"date":"2026-09-30","note":"גיוס לאוקטובר","demo":true}],"expenses":[{"id":"e1","name":"שכירות מגרש","cat":"pitch","amount":650,"date":"2026-09-05","receipt":"demo","demo":true},{"id":"e2","name":"כדורים חדשים","cat":"gear","amount":280,"date":"2026-09-12","demo":true},{"id":"e3","name":"מים ושתייה","cat":"snacks","amount":95,"date":"2026-09-19","demo":true},{"id":"e4","name":"שופט למשחק ידידות","cat":"ref","amount":150,"date":"2026-09-26","demo":true},{"id":"e5","name":"אפודי אימון","cat":"gear","amount":240,"date":"2026-09-28","receipt":"demo","demo":true}]}</script>
+<script id="app-main">
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+document.documentElement.lang='he';
+document.documentElement.dir='rtl';
+
+var FONT_HEAD='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Secular+One&display=swap">';
+var RESET=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#fafaf9}img{max-width:100%}[hidden]{display:none!important}';
+var CATS=[
+  {id:'pitch',label:'מגרש',emoji:'🏟️'},
+  {id:'gear',label:'ציוד וכדורים',emoji:'⚽'},
+  {id:'snacks',label:'שתייה וכיבוד',emoji:'🛒'},
+  {id:'ref',label:'שופט',emoji:'🟨'},
+  {id:'other',label:'אחר',emoji:'📦'}
+];
+function catOf(id){for(var i=0;i<CATS.length;i++){if(CATS[i].id===id)return CATS[i]}return CATS[4]}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function r2(n){return Math.round(n*100)/100}
+function num(n){return Math.abs(r2(n)).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}
+function ilsText(n){return (r2(n)<0?'-':'')+'₪'+num(n)}
+function ils(n){return '<span class="amt" dir="ltr">'+ilsText(n)+'</span>'}
+function pad(n){return String(n).padStart(2,'0')}
+function today(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function fmtDate(iso){var p=String(iso||'').split('-');if(p.length<3)return '';return pad(+p[2])+'.'+pad(+p[1])+'.'+String(p[0]).slice(2)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function parseAmt(v){
+  var s=String(v).trim().replace(/[^\d.,]/g,'');
+  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,'');
+  else s=s.replace(',','.');
+  var n=parseFloat(s);return isFinite(n)?r2(n):NaN;
+}
+var ls={
+  get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set:function(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+};
+
+var DRAFT='kupa-draft-v1';
+var state=JSON.parse($('#app-data').textContent);
+var baseRev=state.rev||0;
+var app=$('#app');
+var isAdmin=ls.get('kupa-admin')==='1',view=ls.get('kupa-view')==='admin'?'admin':'viewer';
+var modal=null,pendingReceipt=null,fileTarget='new',confirmId=null,confirmT=null;
+var publishing=false,dirty=false;
+if(isAdmin){
+  try{
+    var d0=JSON.parse(ls.get(DRAFT)||'null');
+    if(d0&&d0.dirty&&d0.base===baseRev&&d0.state){state=d0.state;dirty=true}
+  }catch(e){}
+}
+
+function demoReceiptSrc(){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560"><rect width="420" height="560" fill="#ffffff"/><g font-family="Arial,sans-serif" fill="#222" text-anchor="middle" direction="rtl"><text x="210" y="70" font-size="26" font-weight="700">קבלה לדוגמה</text><text x="210" y="104" font-size="15" fill="#777">להמחשה בלבד</text></g><g stroke="#bbb" stroke-dasharray="6 5"><line x1="40" y1="140" x2="380" y2="140"/><line x1="40" y1="430" x2="380" y2="430"/></g><g fill="#999"><rect x="40" y="170" width="180" height="12" rx="6"/><rect x="300" y="170" width="80" height="12" rx="6"/><rect x="40" y="210" width="220" height="12" rx="6"/><rect x="310" y="210" width="70" height="12" rx="6"/><rect x="40" y="250" width="150" height="12" rx="6"/><rect x="320" y="250" width="60" height="12" rx="6"/></g><rect x="260" y="460" width="120" height="22" rx="6" fill="#16793F"/></svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+function receiptSrc(r){return r==='demo'?demoReceiptSrc():r}
+
+function sum(a){var t=0;a.forEach(function(x){t+=x.amount});return r2(t)}
+function byDate(a,b){return b.date.localeCompare(a.date)||(b.id>a.id?1:-1)}
+function hasDemo(){return state.incomes.some(function(x){return x.demo})||state.expenses.some(function(x){return x.demo})}
+function purgeDemo(){state.incomes=state.incomes.filter(function(x){return !x.demo});state.expenses=state.expenses.filter(function(x){return !x.demo})}
+
+/* ---------- views ---------- */
+function header(){
+  var sw=isAdmin?'<div class="seg" role="group" aria-label="מצב תצוגה"><button data-action="view" data-v="viewer" aria-pressed="'+(view==='viewer')+'">👀 צופה</button><button data-action="view" data-v="admin" aria-pressed="'+(view==='admin')+'">🛠️ מנהל</button></div>':'';
+  return '<header class="top"><div class="brand"><div class="logo" id="logo" aria-hidden="true">⚽</div><div><h1>קופת הקבוצה</h1><p>דשבורד שקיפות · בלי שמות, רק מספרים</p></div></div>'+sw+'</header>';
+}
+function demoBanner(){
+  if(!hasDemo())return '';
+  var inAdmin=isAdmin&&view==='admin';
+  return '<div class="demo" role="note">🧪 נתוני דוגמה להמחשה בלבד, לא כסף אמיתי.'+(inAdmin?' ברגע שתזין נתון אמיתי הדוגמאות נמחקות. <button data-action="clear-demo">מחק עכשיו</button>':'')+'</div>';
+}
+function donut(parts,total){
+  var r=46,C=2*Math.PI*r,off=0,gap=parts.length>1?1.6:0;
+  var segs=parts.map(function(p){
+    var len=p.amt/total*C,dash=Math.max(len-gap,0.6);
+    var s='<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="var(--c-'+p.id+')" stroke-width="16" stroke-dasharray="'+dash.toFixed(2)+' '+(C-dash).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 60 60)"/>';
+    off+=len;return s;
+  }).join('');
+  var label='חלוקת ההוצאות: '+parts.map(function(p){return catOf(p.id).label+' '+Math.round(p.amt/total*100)+'%'}).join(', ');
+  return '<svg viewBox="0 0 120 120" role="img" aria-label="'+esc(label)+'"><circle cx="60" cy="60" r="'+r+'" fill="none" stroke="var(--surface-2)" stroke-width="16"/>'+segs+'</svg>';
+}
+function viewerScreen(){
+  var inc=sum(state.incomes),exp=sum(state.expenses),bal=r2(inc-exp);
+  var h='';
+  h+='<section class="hero" aria-label="יתרה נוכחית"><div class="hero-label">💰 יתרה נוכחית בקופה</div><div class="hero-num'+(bal<0?' neg':'')+'">'+ils(bal)+'</div><div class="hero-meta">מה שנכנס פחות מה שיצא</div></section>';
+  h+='<div class="tiles"><div class="tile"><div class="lbl">📥 סך הכל הכנסות</div><div class="val in">'+ils(inc)+'</div></div><div class="tile"><div class="lbl">🛒 סך הכל הוצאות</div><div class="val out">'+ils(exp)+'</div></div></div>';
+
+  /* chart */
+  var map={};state.expenses.forEach(function(e){map[e.cat]=r2((map[e.cat]||0)+e.amount)});
+  var parts=Object.keys(map).map(function(k){return {id:catOf(k).id,amt:map[k]}}).sort(function(a,b){return b.amt-a.amt});
+  h+='<section class="card"><h2>📊 לאן הלך הכסף</h2>';
+  if(!parts.length||exp<=0){h+='<div class="empty">עדיין לא נרשמו הוצאות.</div>'}
+  else{
+    h+='<div class="chart"><div class="donut">'+donut(parts,exp)+'<div class="mid"><span class="t">סה״כ הוצאות</span><span class="v">'+ils(exp)+'</span></div></div><ul class="legend">';
+    parts.forEach(function(p){
+      var c=catOf(p.id),pc=Math.round(p.amt/exp*100);
+      h+='<li><span class="nm"><span class="dot" style="background:var(--c-'+c.id+')"></span><span>'+c.emoji+' '+esc(c.label)+'</span><span class="pc">'+pc+'%</span></span><span class="am">'+ils(p.amt)+'</span><span class="bar"><i style="width:'+pc+'%;background:var(--c-'+c.id+')"></i></span></li>';
+    });
+    h+='</ul></div>';
+  }
+  h+='</section>';
+
+  /* expenses table */
+  var ex=state.expenses.slice().sort(byDate);
+  h+='<section class="card"><h2>📄 היסטוריית הוצאות<small>'+ex.length+' רשומות</small></h2>';
+  if(!ex.length){h+='<div class="empty">עדיין לא נרשמו הוצאות.</div>'}
+  else{
+    h+='<div class="tbl-wrap"><table><thead><tr><th>תאריך</th><th>הוצאה</th><th>סכום</th><th>קבלה</th></tr></thead><tbody>';
+    ex.forEach(function(e){
+      var c=catOf(e.cat);
+      h+='<tr><td class="d">'+fmtDate(e.date)+'</td><td>'+c.emoji+' '+esc(e.name)+'<small>'+esc(c.label)+'</small></td><td class="n">'+ils(e.amount)+'</td><td>'+(e.receipt?'<button class="chip" data-action="receipt" data-id="'+esc(e.id)+'">📄 הצג קבלה</button>':'<span class="muted">ללא קבלה</span>')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</section>';
+
+  /* deposits */
+  var inl=state.incomes.slice().sort(byDate);
+  h+='<section class="card"><h2>💰 הכנסות לקופה<small>'+inl.length+' רשומות</small></h2>';
+  if(!inl.length){h+='<div class="empty">עדיין לא נרשמו הכנסות.</div>'}
+  else{
+    h+='<ul class="dep">';
+    inl.forEach(function(i){h+='<li><span class="d">'+fmtDate(i.date)+'</span><span class="tx">'+esc(i.note||'הפקדה לקופה')+'</span><span class="am">+'+ils(i.amount)+'</span></li>'});
+    h+='</ul>';
+  }
+  h+='</section>';
+
+  var up=state.updated?'עודכן לאחרונה: '+new Date(state.updated).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'}):'';
+  h+='<footer class="foot">האתר אנונימי במכוון: אין בו שמות של שחקנים.'+(up?'<br>'+esc(up):'')+'</footer>';
+  return h;
+}
+function catOptions(){return CATS.map(function(c){return '<option value="'+c.id+'">'+c.emoji+' '+esc(c.label)+'</option>'}).join('')}
+function adminScreen(){
+  var inc=sum(state.incomes),exp=sum(state.expenses),bal=r2(inc-exp);
+  var h='';
+  h+='<section class="card"><div class="sync">'+(dirty?'✏️ <span>יש טיוטה שהחברים עדיין לא רואים.</span>':'<b>✓</b> <span>מה שמוצג לחברים זהה למה שמופיע כאן.</span>')+'</div><p class="hint" style="margin-top:8px">יתרה כרגע: <b>'+ils(bal)+'</b></p><p class="hint" style="margin-top:10px">איך מעדכנים את האתר: 1) לוחצים "הורד קובץ מעודכן". 2) גוררים את הקובץ index.html לאתר באותו מקום שבו העליתם אותו בפעם הראשונה. הקישור נשאר אותו קישור.</p></section>';
+
+  h+='<section class="card"><h2>💰 הכנסה לקופה</h2><form data-form="income" class="grid2" novalidate>'
+    +'<div class="field"><label class="lbl2" for="f-inc-amt">סכום (₪)</label><input id="f-inc-amt" inputmode="decimal" autocomplete="off" placeholder="למשל 300"></div>'
+    +'<div class="field"><label class="lbl2" for="f-inc-date">תאריך</label><input id="f-inc-date" type="date" value="'+today()+'"></div>'
+    +'<div class="field span2"><label class="lbl2" for="f-inc-note">תיאור (לא חובה)</label><input id="f-inc-note" autocomplete="off" placeholder="למשל: גיוס לחודש אוקטובר"></div>'
+    +'<p class="hint span2">אל תכתבו שמות של שחקנים. האתר אנונימי.</p>'
+    +'<div class="span2"><button class="btn" type="submit">הוסף הכנסה</button></div></form></section>';
+
+  h+='<section class="card"><h2>🛒 הוצאה חדשה</h2><form data-form="expense" class="grid2" novalidate>'
+    +'<div class="field span2"><label class="lbl2" for="f-exp-name">שם ההוצאה</label><input id="f-exp-name" autocomplete="off" placeholder="למשל: כדורים, מגרש"></div>'
+    +'<div class="field"><label class="lbl2" for="f-exp-amt">סכום (₪)</label><input id="f-exp-amt" inputmode="decimal" autocomplete="off" placeholder="למשל 280"></div>'
+    +'<div class="field"><label class="lbl2" for="f-exp-date">תאריך</label><input id="f-exp-date" type="date" value="'+today()+'"></div>'
+    +'<div class="field span2"><label class="lbl2" for="f-exp-cat">קטגוריה</label><select id="f-exp-cat">'+catOptions()+'</select></div>'
+    +'<div class="field span2"><span class="lbl2">קבלה (לא חובה)</span><div class="rcpt">'
+    +(pendingReceipt?'<img class="thumb" src="'+pendingReceipt+'" alt="תצוגה מקדימה של הקבלה"><button type="button" class="ghost danger" data-action="clear-pending">הסר</button>':'')
+    +'<button type="button" class="ghost" data-action="pick-new">📄 '+(pendingReceipt?'החלף קובץ':'צרף תמונה או צלם')+'</button></div></div>'
+    +'<div class="span2"><button class="btn" type="submit">שמור הוצאה</button></div></form></section>';
+
+  var ex=state.expenses.slice().sort(byDate);
+  h+='<section class="card"><h2>🧾 ניהול הוצאות<small>'+ex.length+'</small></h2>';
+  if(!ex.length)h+='<div class="empty">אין הוצאות.</div>';
+  else{
+    h+='<ul class="mlist">';
+    ex.forEach(function(e){
+      var c=catOf(e.cat),k='exp:'+e.id;
+      h+='<li class="mrow"><div><b>'+c.emoji+' '+esc(e.name)+'</b><small>'+esc(c.label)+' · '+fmtDate(e.date)+'</small></div><div class="am">'+ils(e.amount)+'</div><div class="macts">'
+        +'<button class="ghost" data-action="attach" data-id="'+esc(e.id)+'">📄 '+(e.receipt?'החלף קבלה':'הוסף קבלה')+'</button>'
+        +(e.receipt?'<button class="ghost" data-action="receipt" data-id="'+esc(e.id)+'">הצג</button>':'')
+        +'<button class="ghost danger" data-action="del" data-kind="exp" data-id="'+esc(e.id)+'">'+(confirmId===k?'בטוח? מחק':'מחק')+'</button></div></li>';
+    });
+    h+='</ul>';
+  }
+  h+='</section>';
+
+  var inl=state.incomes.slice().sort(byDate);
+  h+='<section class="card"><h2>💰 ניהול הכנסות<small>'+inl.length+'</small></h2>';
+  if(!inl.length)h+='<div class="empty">אין הכנסות.</div>';
+  else{
+    h+='<ul class="mlist">';
+    inl.forEach(function(i){
+      var k='inc:'+i.id;
+      h+='<li class="mrow"><div><b>'+esc(i.note||'הפקדה לקופה')+'</b><small>'+fmtDate(i.date)+'</small></div><div class="am">'+ils(i.amount)+'</div><div class="macts"><button class="ghost danger" data-action="del" data-kind="inc" data-id="'+esc(i.id)+'">'+(confirmId===k?'בטוח? מחק':'מחק')+'</button></div></li>';
+    });
+    h+='</ul>';
+  }
+  h+='</section>';
+
+  h+='<section class="card"><h2>🧹 התחלה מחדש</h2><p class="hint" style="margin-bottom:12px">מוחק את כל ההכנסות וההוצאות מהטיוטה. הגרסה שפורסמה לחברים נשארת עד שתפרסם.</p><button class="ghost danger" data-action="reset">'+(confirmId==='reset'?'בטוח? מחק הכל':'אפס את הקופה')+'</button></section>';
+  return h;
+}
+function modalHtml(){
+  if(!modal)return '';
+  return '<div class="modal" role="presentation"><div class="modal-card" role="dialog" aria-modal="true" aria-label="קבלה"><div class="modal-head"><b>'+esc(modal.title)+'</b><button class="ghost" id="modal-close" data-action="close-modal">✕ סגור</button></div><div class="modal-body"><img src="'+modal.src+'" alt="צילום הקבלה"></div></div></div>';
+}
+function pubbar(){
+  if(!isAdmin||!dirty)return '';
+  return '<div class="pubbar"><div><span>✏️ יש שינויים שלא הגיעו לחברים. הורידו קובץ מעודכן והעלו אותו לאתר.</span><button class="btn" data-action="export">הורד קובץ מעודכן</button></div></div>';
+}
+
+function snap(){
+  var o={};
+  app.querySelectorAll('input[id],select[id]').forEach(function(el){o[el.id]=el.value});
+  var ae=document.activeElement;o.__focus=ae&&ae.id&&app.contains(ae)?ae.id:null;
+  return o;
+}
+function restore(o){
+  Object.keys(o).forEach(function(k){
+    if(k==='__focus')return;
+    var el=document.getElementById(k);if(el)el.value=o[k];
+  });
+  if(o.__focus&&o.__focus!=='modal-close'){var f=document.getElementById(o.__focus);if(f)try{f.focus()}catch(e){}}
+}
+function render(){
+  var s=snap();
+  var admin=isAdmin&&view==='admin';
+  app.innerHTML='<div class="wrap">'+header()+demoBanner()+(admin?adminScreen():viewerScreen())+'</div>'+modalHtml()+pubbar();
+  restore(s);
+  document.body.style.overflow=modal?'hidden':'';
+  if(modal){var c=$('#modal-close');if(c)c.focus()}
+}
+
+/* ---------- state ---------- */
+function saveDraft(){return ls.set(DRAFT,JSON.stringify({base:baseRev,dirty:true,state:state}))}
+function touch(){
+  dirty=true;
+  if(!saveDraft())toast('הטיוטה לא נשמרה בדפדפן (אין מקום). כדאי לפרסם עכשיו.');
+  render();
+}
+var toastEl=document.createElement('div');
+toastEl.className='toast';toastEl.hidden=true;toastEl.setAttribute('role','status');
+document.body.appendChild(toastEl);
+var toastT=null;
+function toast(m){toastEl.textContent=m;toastEl.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){toastEl.hidden=true},3800)}
+
+function addIncome(){
+  var amt=parseAmt($('#f-inc-amt').value),date=$('#f-inc-date').value||today(),note=$('#f-inc-note').value.trim();
+  if(!(amt>0)){toast('הזינו סכום גדול מאפס');return}
+  purgeDemo();
+  state.incomes.push({id:uid(),amount:amt,date:date,note:note});
+  $('#f-inc-amt').value='';$('#f-inc-note').value='';
+  touch();toast('ההכנסה נוספה לטיוטה');
+}
+function addExpense(){
+  var name=$('#f-exp-name').value.trim(),amt=parseAmt($('#f-exp-amt').value),cat=$('#f-exp-cat').value,date=$('#f-exp-date').value||today();
+  if(!name){toast('כתבו שם להוצאה');return}
+  if(!(amt>0)){toast('הזינו סכום גדול מאפס');return}
+  purgeDemo();
+  var e={id:uid(),name:name,cat:cat,amount:amt,date:date};
+  if(pendingReceipt)e.receipt=pendingReceipt;
+  state.expenses.push(e);
+  pendingReceipt=null;$('#f-exp-name').value='';$('#f-exp-amt').value='';
+  touch();toast('ההוצאה נוספה לטיוטה');
+}
+
+/* ---------- receipts ---------- */
+var fileInput=document.createElement('input');
+fileInput.type='file';fileInput.accept='image/*';fileInput.hidden=true;fileInput.setAttribute('aria-hidden','true');
+document.body.appendChild(fileInput);
+function compress(file){
+  return new Promise(function(res,rej){
+    var rd=new FileReader();
+    rd.onerror=rej;
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=rej;
+      img.onload=function(){
+        var tries=[[1400,0.72],[1100,0.62],[800,0.55]],out='';
+        for(var i=0;i<tries.length;i++){
+          var s=Math.min(1,tries[i][0]/Math.max(img.width,img.height));
+          var w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));
+          var c=document.createElement('canvas');c.width=w;c.height=h;
+          var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+          out=c.toDataURL('image/jpeg',tries[i][1]);
+          if(out.length<900000)break;
+        }
+        res(out);
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+fileInput.addEventListener('change',function(){
+  var f=fileInput.files&&fileInput.files[0];fileInput.value='';
+  if(!f)return;
+  if(!/^image\//.test(f.type)){toast('אפשר לצרף רק תמונה (JPG או PNG)');return}
+  compress(f).then(function(url){
+    if(fileTarget==='new'){pendingReceipt=url;render()}
+    else{
+      var ex=state.expenses.filter(function(x){return x.id===fileTarget})[0];
+      if(ex){ex.receipt=url;touch();toast('הקבלה נוספה לטיוטה')}
+    }
+  }).catch(function(){toast('לא הצלחתי לקרוא את התמונה. נסו קובץ JPG או PNG.')});
+});
+
+/* ---------- publishing ---------- */
+function buildDoc(next){
+  var SC='script';
+  var json=JSON.stringify(next).replace(/</g,'\\u003c').split(String.fromCharCode(8232)).join('\\u2028').split(String.fromCharCode(8233)).join('\\u2029');
+  var css=$('#app-style').textContent,main=$('#app-main').textContent;
+  return '<!doctype html>\n<html lang="he" dir="rtl">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<title>קופת הקבוצה</title>\n'+FONT_HEAD+'\n<style id="app-style">'+css+'</style>\n</head>\n<body>\n<div id="app"></div>\n<'+SC+' type="application/json" id="app-data">'+json+'</'+SC+'>\n<'+SC+' id="app-main">'+main+'</'+SC+'>\n</body>\n</html>\n';
+}
+function exportFile(){
+  var next=JSON.parse(JSON.stringify(state));
+  next.rev=baseRev+1;next.updated=new Date().toISOString();
+  var html=buildDoc(next);
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='index.html';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},5000);
+  toast('הקובץ index.html ירד. עכשיו מעלים אותו לאתר.');
+}
+
+/* ---------- events ---------- */
+function closeModal(){modal=null;render()}
+document.addEventListener('click',function(e){
+  var t=e.target;
+  if(modal&&t.classList&&t.classList.contains('modal')){closeModal();return}
+  var el=t.closest?t.closest('[data-action]'):null;if(!el)return;
+  var a=el.dataset.action,id=el.dataset.id;
+  if(a==='view'){view=el.dataset.v;ls.set('kupa-view',view);render();window.scrollTo(0,0)}
+  else if(a==='receipt'){
+    var ex=state.expenses.filter(function(x){return x.id===id})[0];
+    if(ex&&ex.receipt){modal={src:receiptSrc(ex.receipt),title:ex.name+' · '+ilsText(ex.amount)};render()}
+  }
+  else if(a==='close-modal')closeModal();
+  else if(a==='pick-new'){fileTarget='new';fileInput.click()}
+  else if(a==='attach'){fileTarget=id;fileInput.click()}
+  else if(a==='clear-pending'){pendingReceipt=null;render()}
+  else if(a==='clear-demo'){purgeDemo();touch()}
+  else if(a==='export')exportFile();
+  else if(a==='del'||a==='reset'){
+    var key=a==='reset'?'reset':el.dataset.kind+':'+id;
+    if(confirmId===key){
+      confirmId=null;
+      if(a==='reset'){state.incomes=[];state.expenses=[]}
+      else if(el.dataset.kind==='exp')state.expenses=state.expenses.filter(function(x){return x.id!==id});
+      else state.incomes=state.incomes.filter(function(x){return x.id!==id});
+      touch();
+    }else{
+      confirmId=key;render();
+      clearTimeout(confirmT);confirmT=setTimeout(function(){confirmId=null;render()},4000);
+    }
+  }
+});
+document.addEventListener('submit',function(e){
+  var f=e.target.closest?e.target.closest('form[data-form]'):null;if(!f)return;
+  e.preventDefault();
+  if(f.dataset.form==='income')addIncome();else addExpense();
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal)closeModal()});
+
+/* ---------- boot ---------- */
+render();
+(function longPress(){
+  var t=null;
+  function stop(){clearTimeout(t);t=null}
+  document.addEventListener('pointerdown',function(e){
+    if(!e.target.closest||!e.target.closest('#logo'))return;
+    stop();
+    t=setTimeout(function(){
+      isAdmin=!isAdmin;
+      ls.set('kupa-admin',isAdmin?'1':'0');
+      if(!isAdmin)view='viewer';
+      render();
+      toast(isAdmin?'מצב מנהל נפתח במכשיר הזה':'מצב מנהל נסגר');
+    },1200);
+  });
+  ['pointerup','pointerleave','pointercancel','scroll'].forEach(function(n){document.addEventListener(n,stop,true)});
+  document.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('#logo'))e.preventDefault()});
+})();
+})();
+</script>
+</body>
+</html>
